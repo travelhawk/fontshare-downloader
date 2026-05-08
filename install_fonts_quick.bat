@@ -11,7 +11,7 @@ echo       Right-click and "Run as administrator" if fonts don't install.
 echo.
 pause
 
-python quick_install_fonts.py
+python scripts\legacy\quick_install_fonts.py
 
 echo.
 echo Installation process completed!

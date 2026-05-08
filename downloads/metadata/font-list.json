@@ -1,106 +1,407 @@
 {
   "fonts": [
-    "kihim",
-    "gambetta",
-    "synonym",
-    "rowan",
-    "gambarino",
-    "technor",
-    "comico",
-    "general-sans",
-    "sentient",
-    "boska",
-    "switzer",
-    "tabular",
-    "tanker",
-    "expose",
-    "striper",
-    "boxing",
-    "pilcrow-rounded",
-    "melodrama",
-    "kohinoor-zerone",
-    "new-title",
-    "aktura",
-    "alpino",
-    "amulya",
-    "array",
-    "author",
-    "bespoke-sans",
-    "bespoke-serif",
-    "bespoke-slab",
-    "bespoke-stencil",
-    "clash-grotesk",
-    "clash-display",
-    "chubbo",
-    "chillax",
-    "cabinet-grotesk",
-    "britney",
-    "bonny",
-    "bevellier",
-    "archivo",
-    "bebas-neue",
-    "poppins",
-    "dancing-script",
-    "anton",
-    "bevietnam-pro",
-    "lora",
-    "montserrat",
-    "asap",
-    "epilogue",
-    "plus-jakarta-sans",
-    "crimson-pro",
-    "manrope",
-    "work-sans",
-    "azeret-mono",
-    "spline-sans",
-    "jet-brains-mono",
-    "nunito",
-    "outfit",
-    "fira-sans",
-    "oswald",
-    "public-sans",
-    "familjen-grotesk",
-    "pencerio",
-    "kola",
-    "roundo",
-    "erode",
-    "neco",
-    "excon",
-    "kalam",
-    "hind",
-    "panchang",
-    "nippo",
-    "hoover",
-    "pally",
-    "space-grotesk",
-    "rajdhani",
-    "stardom",
-    "pramukh-rounded",
-    "segment",
-    "supreme",
-    "recia",
-    "trench-slab",
-    "zodiak",
-    "telma",
-    "sharpie",
-    "satoshi",
-    "styro",
-    "ranade",
-    "plein",
-    "rosaline",
-    "rx-100",
-    "paquito",
-    "quilon",
-    "khand",
-    "zina",
-    "red-hat-display",
-    "sora",
-    "literata",
-    "merriweather-sans",
-    "quicksand",
-    "teko",
-    "karma"
+    {
+      "slug": "aktura",
+      "name": "Aktura"
+    },
+    {
+      "slug": "alpino",
+      "name": "Alpino"
+    },
+    {
+      "slug": "amulya",
+      "name": "Amulya"
+    },
+    {
+      "slug": "anton",
+      "name": "Anton"
+    },
+    {
+      "slug": "archivo",
+      "name": "Archivo"
+    },
+    {
+      "slug": "array",
+      "name": "Array"
+    },
+    {
+      "slug": "asap",
+      "name": "Asap"
+    },
+    {
+      "slug": "author",
+      "name": "Author"
+    },
+    {
+      "slug": "azeret-mono",
+      "name": "Azeret Mono"
+    },
+    {
+      "slug": "bebas-neue",
+      "name": "Bebas Neue"
+    },
+    {
+      "slug": "bespoke-sans",
+      "name": "Bespoke Sans"
+    },
+    {
+      "slug": "bespoke-serif",
+      "name": "Bespoke Serif"
+    },
+    {
+      "slug": "bespoke-slab",
+      "name": "Bespoke Slab"
+    },
+    {
+      "slug": "bespoke-stencil",
+      "name": "Bespoke Stencil"
+    },
+    {
+      "slug": "bevellier",
+      "name": "Bevellier"
+    },
+    {
+      "slug": "beVietnam-pro",
+      "name": "Be Vietnam Pro"
+    },
+    {
+      "slug": "bonny",
+      "name": "Bonny"
+    },
+    {
+      "slug": "boska",
+      "name": "Boska"
+    },
+    {
+      "slug": "boxing",
+      "name": "Boxing"
+    },
+    {
+      "slug": "britney",
+      "name": "Britney"
+    },
+    {
+      "slug": "cabinet-grotesk",
+      "name": "Cabinet Grotesk"
+    },
+    {
+      "slug": "chillax",
+      "name": "Chillax"
+    },
+    {
+      "slug": "chubbo",
+      "name": "Chubbo"
+    },
+    {
+      "slug": "clash-display",
+      "name": "Clash Display"
+    },
+    {
+      "slug": "clash-grotesk",
+      "name": "Clash Grotesk"
+    },
+    {
+      "slug": "comico",
+      "name": "Comico"
+    },
+    {
+      "slug": "crimson-pro",
+      "name": "Crimson Pro"
+    },
+    {
+      "slug": "dancing-script",
+      "name": "Dancing Script"
+    },
+    {
+      "slug": "epilogue",
+      "name": "Epilogue"
+    },
+    {
+      "slug": "erode",
+      "name": "Erode"
+    },
+    {
+      "slug": "excon",
+      "name": "Excon"
+    },
+    {
+      "slug": "expose",
+      "name": "Expose"
+    },
+    {
+      "slug": "familjen-grotesk",
+      "name": "Familjen Grotesk"
+    },
+    {
+      "slug": "fira-sans",
+      "name": "Fira Sans"
+    },
+    {
+      "slug": "gambarino",
+      "name": "Gambarino"
+    },
+    {
+      "slug": "gambetta",
+      "name": "Gambetta"
+    },
+    {
+      "slug": "general-sans",
+      "name": "General Sans"
+    },
+    {
+      "slug": "hind",
+      "name": "Hind"
+    },
+    {
+      "slug": "hoover",
+      "name": "Hoover"
+    },
+    {
+      "slug": "jet-brains-mono",
+      "name": "JetBrains Mono"
+    },
+    {
+      "slug": "kalam",
+      "name": "Kalam"
+    },
+    {
+      "slug": "karma",
+      "name": "Karma"
+    },
+    {
+      "slug": "khand",
+      "name": "Khand"
+    },
+    {
+      "slug": "kihim",
+      "name": "Kihim"
+    },
+    {
+      "slug": "kohinoor-zerone",
+      "name": "Kohinoor Zerone"
+    },
+    {
+      "slug": "kola",
+      "name": "Kola"
+    },
+    {
+      "slug": "literata",
+      "name": "Literata"
+    },
+    {
+      "slug": "lora",
+      "name": "Lora"
+    },
+    {
+      "slug": "manrope",
+      "name": "Manrope"
+    },
+    {
+      "slug": "melodrama",
+      "name": "Melodrama"
+    },
+    {
+      "slug": "merriweather-sans",
+      "name": "Merriweather Sans"
+    },
+    {
+      "slug": "montserrat",
+      "name": "Montserrat"
+    },
+    {
+      "slug": "neco",
+      "name": "Neco"
+    },
+    {
+      "slug": "new-title",
+      "name": "New Title"
+    },
+    {
+      "slug": "nippo",
+      "name": "Nippo"
+    },
+    {
+      "slug": "nunito",
+      "name": "Nunito"
+    },
+    {
+      "slug": "oswald",
+      "name": "Oswald"
+    },
+    {
+      "slug": "outfit",
+      "name": "Outfit"
+    },
+    {
+      "slug": "pally",
+      "name": "Pally"
+    },
+    {
+      "slug": "panchang",
+      "name": "Panchang"
+    },
+    {
+      "slug": "paquito",
+      "name": "Paquito"
+    },
+    {
+      "slug": "pencerio",
+      "name": "Pencerio"
+    },
+    {
+      "slug": "pilcrow-rounded",
+      "name": "Pilcrow Rounded"
+    },
+    {
+      "slug": "plein",
+      "name": "Plein"
+    },
+    {
+      "slug": "plus-jakarta-sans",
+      "name": "Plus Jakarta Sans"
+    },
+    {
+      "slug": "poppins",
+      "name": "Poppins"
+    },
+    {
+      "slug": "pramukh-rounded",
+      "name": "Pramukh Rounded"
+    },
+    {
+      "slug": "public-sans",
+      "name": "Public Sans"
+    },
+    {
+      "slug": "quicksand",
+      "name": "Quicksand"
+    },
+    {
+      "slug": "quilon",
+      "name": "Quilon"
+    },
+    {
+      "slug": "rajdhani",
+      "name": "Rajdhani"
+    },
+    {
+      "slug": "ranade",
+      "name": "Ranade"
+    },
+    {
+      "slug": "recia",
+      "name": "Recia"
+    },
+    {
+      "slug": "red-hat-display",
+      "name": "Red Hat Display"
+    },
+    {
+      "slug": "rosaline",
+      "name": "Rosaline"
+    },
+    {
+      "slug": "roundo",
+      "name": "Roundo"
+    },
+    {
+      "slug": "rowan",
+      "name": "Rowan"
+    },
+    {
+      "slug": "rx-100",
+      "name": "RX100"
+    },
+    {
+      "slug": "satoshi",
+      "name": "Satoshi"
+    },
+    {
+      "slug": "segment",
+      "name": "Segment"
+    },
+    {
+      "slug": "sentient",
+      "name": "Sentient"
+    },
+    {
+      "slug": "sharpie",
+      "name": "Sharpie"
+    },
+    {
+      "slug": "sora",
+      "name": "Sora"
+    },
+    {
+      "slug": "space-grotesk",
+      "name": "Space Grotesk"
+    },
+    {
+      "slug": "spline-sans",
+      "name": "Spline Sans"
+    },
+    {
+      "slug": "stardom",
+      "name": "Stardom"
+    },
+    {
+      "slug": "striper",
+      "name": "Striper"
+    },
+    {
+      "slug": "styro",
+      "name": "Styro"
+    },
+    {
+      "slug": "supreme",
+      "name": "Supreme"
+    },
+    {
+      "slug": "switzer",
+      "name": "Switzer"
+    },
+    {
+      "slug": "synonym",
+      "name": "Synonym"
+    },
+    {
+      "slug": "tabular",
+      "name": "Tabular"
+    },
+    {
+      "slug": "tanker",
+      "name": "Tanker"
+    },
+    {
+      "slug": "technor",
+      "name": "Technor"
+    },
+    {
+      "slug": "teko",
+      "name": "Teko"
+    },
+    {
+      "slug": "telma",
+      "name": "Telma"
+    },
+    {
+      "slug": "trench-slab",
+      "name": "Trench Slab"
+    },
+    {
+      "slug": "work-sans",
+      "name": "Work Sans"
+    },
+    {
+      "slug": "zina",
+      "name": "Zina"
+    },
+    {
+      "slug": "zodiak",
+      "name": "Zodiak"
+    }
   ],
   "total_count": 100,
-  "discovery_time": 1773584266.335459
+  "discovery_time": 1778244057.55229,
+  "catalog_endpoint": "https://api.fontshare.com/v2/fonts"
 }

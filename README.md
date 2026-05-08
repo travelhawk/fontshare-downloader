@@ -1,175 +1,134 @@
-# Fontshare Bulk Font Downloader
+# Fontshare Downloader
 
-A Python tool to download all fonts from [Fontshare.com](https://www.fontshare.com/) using their API endpoint. Since Fontshare doesn't provide a bulk download option, this tool automates the process of downloading their entire font library.
+Python scripts for downloading the current Fontshare catalog, extracting each family, and optionally installing the resulting desktop fonts.
 
-## Features
+The repository now has one primary workflow and a small set of archived experiments. If you only want the supported path, use `fontshare_downloader.py` for downloading and `install_fonts.py` for installation.
 
-- 🔍 **Auto-discovery**: Automatically finds all available fonts on Fontshare
-- 📥 **Bulk download**: Downloads all fonts using their API endpoint
-- ⚡ **Concurrent downloads**: Configurable concurrent downloads with rate limiting
-- 📊 **Progress tracking**: Real-time progress bars and detailed logging
-- 🔄 **Resume capability**: Skips already downloaded fonts
-- 📁 **Organized storage**: Saves fonts in organized directory structure
+## Current Status
 
-## Installation
+- `fontshare_downloader.py` is the main downloader.
+- `install_fonts.py` is the main cross-platform installer for extracted desktop fonts.
+- `run_downloader.bat` is a Windows convenience wrapper for the main downloader.
+- `install_fonts_quick.bat` and `install_system_fonts.bat` are Windows-only legacy helpers kept for fallback use.
+- `scripts/legacy/` contains older prototypes, debug scripts, and superseded one-off utilities.
+- `docs/prd.md` is the original planning document, kept as project history rather than current behavior.
 
-1. **Clone or download this repository**
+## Repository Layout
 
-   ```bash
-   cd /path/to/fonshare-download-all
-   ```
+```text
+.
+├── README.md
+├── requirements.txt
+├── fontshare_downloader.py      # Supported downloader CLI
+├── install_fonts.py             # Supported installer CLI
+├── font_list.py                 # Fallback font slug lists
+├── run_downloader.bat           # Windows wrapper for the main downloader
+├── install_fonts_quick.bat      # Legacy Windows fallback wrapper
+├── install_system_fonts.bat     # Legacy Windows admin wrapper
+├── docs/
+│   └── prd.md
+```
 
-2. **Install Python dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+Runtime output is written to `downloads/` by default and should be treated as generated data, not source code.
 
-## Usage
+## Requirements
 
-### Basic Usage
+- Python 3.10+
+- `pip install -r requirements.txt`
+
+Current Python dependencies:
+
+- `aiohttp`
+- `beautifulsoup4`
+- `click`
+- `requests`
+- `tqdm`
+
+## Supported Usage
+
+### Download the catalog
+
+Use this to download the fonts automatically:
 
 ```bash
 python fontshare_downloader.py
 ```
 
-This will:
+Use this to download and install the fonts automatically:
 
-- Create a `downloads` folder in the current directory
-- Discover all fonts from Fontshare
-- Download each font as a ZIP file
-- Save fonts in `downloads/fonts/` with organized subdirectories
+```
+python fontshare_downloader.py --install
+```
 
-### Advanced Usage
+Useful options:
 
 ```bash
-# Custom output directory
-python fontshare_downloader.py --output-dir ./my-fonts
-
-# Adjust rate limiting (delay between requests)
-python fontshare_downloader.py --rate-limit 2.0
-
-# Increase concurrent downloads
-python fontshare_downloader.py --max-concurrent 5
-
-# Enable verbose logging
+python fontshare_downloader.py --output-dir ./downloads
+python fontshare_downloader.py --rate-limit 1.0
+python fontshare_downloader.py --max-concurrent 3
+python fontshare_downloader.py --install --install-scope system
 python fontshare_downloader.py --verbose
-
-# Combine options
-python fontshare_downloader.py \
-    --output-dir ./fontshare-collection \
-    --rate-limit 0.5 \
-    --max-concurrent 3 \
-    --verbose
 ```
 
-### Command Line Options
+What the main downloader does:
 
-| Option                   | Description                      | Default       |
-| ------------------------ | -------------------------------- | ------------- |
-| `--output-dir`, `-o`     | Output directory for downloads   | `./downloads` |
-| `--rate-limit`, `-r`     | Delay between requests (seconds) | `1.0`         |
-| `--max-concurrent`, `-c` | Maximum concurrent downloads     | `3`           |
-| `--verbose`, `-v`        | Enable verbose logging           | `False`       |
+- fetches the live Fontshare catalog from `https://api.fontshare.com/v2/fonts`
+- falls back to `font_list.py` if live discovery fails
+- downloads each family archive
+- extracts each family immediately into `downloads/fonts/<slug>/`
+- records logs and metadata under `downloads/logs/` and `downloads/metadata/`
 
-## Output Structure
+### Install extracted fonts
 
-After running the tool, your files will be organized as follows:
+Install for the current user:
 
+```bash
+python install_fonts.py --scope user
 ```
+
+Install system-wide:
+
+```bash
+python install_fonts.py --scope system
+```
+
+You can also point the installer at a custom extraction directory:
+
+```bash
+python install_fonts.py --fonts-dir ./downloads/fonts --scope user
+```
+
+## Default Output Layout
+
+```text
 downloads/
-├── fonts/                    # Downloaded font files
-│   ├── satoshi/
-│   │   └── satoshi.zip
-│   ├── cabinet-grotesk/
-│   │   └── cabinet-grotesk.zip
-│   └── clash-display/
-│       └── clash-display.zip
-├── logs/                     # Log files
+├── fonts/
+│   └── <font-slug>/
+│       ├── OTF/
+│       ├── TTF/
+│       └── WEB/
+├── logs/
 │   └── download.log
-└── metadata/                 # Download metadata
+└── metadata/
     └── font-list.json
 ```
 
-## How It Works
+The installer ignores web-only assets and installs desktop font files such as `.otf`, `.ttf`, `.ttc`, and `.otc`.
 
-1. **Font Discovery**: The tool visits Fontshare and discovers all available fonts through multiple strategies:
+## Legacy Scripts
 
-   - Checking for API endpoints that list fonts
-   - Parsing the website for embedded font data
-   - Using a fallback list of known fonts
+Everything under `scripts/legacy/` is retained for reference, troubleshooting, or older Windows-only flows. Those scripts are not the preferred interface and may reflect earlier ZIP-based behavior that predates the current extract-on-download workflow.
 
-2. **Download Process**: For each discovered font, it:
+If you need them anyway:
 
-   - Constructs the download URL: `https://api.fontshare.com/v2/fonts/download/{font-name}`
-   - Downloads the font ZIP file
-   - Saves it in an organized directory structure
-   - Implements rate limiting to be respectful to the server
-
-3. **Progress Tracking**: Shows real-time progress and logs all activities
-
-## Example Output
-
-```
-🚀 Fontshare Bulk Font Downloader
-========================================
-🔍 Discovering fonts from Fontshare...
-✅ Found 127 fonts via website parsing
-📥 Starting download of 127 fonts...
-
-Downloading fonts: 100%|████████████| 127/127 [05:23<00:00,  2.55s/font]
-
-==================================================
-🎉 Fontshare Bulk Download Complete!
-==================================================
-📁 Fonts saved to: ./downloads/fonts
-📊 Success: 125 fonts
-❌ Failed: 2 fonts
-⏱️  Total time: 323.1 seconds
-📋 Logs saved to: ./downloads/logs/download.log
+```bash
+python scripts/legacy/demo.py
+python scripts/legacy/discover_fonts.py
+python scripts/legacy/debug_downloader.py
 ```
 
-## Rate Limiting & Ethics
+## Notes
 
-This tool implements rate limiting to be respectful to Fontshare's servers:
-
-- Default 1-second delay between downloads
-- Configurable concurrent download limits
-- Respectful user-agent and request patterns
-
-Please use this tool responsibly and respect Fontshare's terms of service.
-
-## Troubleshooting
-
-### No fonts discovered
-
-- Check your internet connection
-- Fontshare might have changed their website structure
-- The tool will fall back to a known list of popular fonts
-
-### Download failures
-
-- Some fonts might be temporarily unavailable
-- Check the log file for detailed error information
-- Failed downloads can be retried by running the tool again
-
-### Permission errors
-
-- Make sure you have write permissions in the output directory
-- On Windows, you might need to run as administrator
-
-## Font Usage
-
-All fonts downloaded are subject to Fontshare's licensing terms. Please review their [license](https://www.fontshare.com/licenses) before using the fonts in your projects.
-
-## Contributing
-
-Feel free to contribute improvements:
-
-- Better font discovery methods
-- Additional output formats
-- GUI interface
-- Bug fixes and optimizations
-
-## Disclaimer
-
-This tool is for educational and personal use. Please respect Fontshare's terms of service and use their fonts according to their licensing terms. The fonts are provided by Fontshare under their own license agreements.
+- Font downloads and use remain subject to Fontshare's licensing terms.
+- Use conservative rate limits and concurrency so the downloader remains respectful to Fontshare's service.
+- If system-wide installation fails on Windows, run the shell with administrator privileges or use `--scope user`.

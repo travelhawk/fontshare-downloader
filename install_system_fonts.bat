@@ -24,7 +24,7 @@ echo.
 echo Installing fonts to C:\Windows\Fonts...
 echo.
 
-python install_system_fonts.py
+python scripts\legacy\install_system_fonts.py
 
 echo.
 echo Installation completed!

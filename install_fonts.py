@@ -1,272 +1,283 @@
 #!/usr/bin/env python3
 """
-Fontshare Font Installer
+Fontshare font installer.
 
-A tool to automatically install all downloaded fonts from Fontshare.
-Supports Windows, macOS, and Linux.
+Installs extracted font files from the downloader output on Windows, macOS, and Linux.
 """
 
-import os
-import sys
-import shutil
-import zipfile
-import tempfile
-import platform
-from pathlib import Path
-from typing import List, Dict
+import argparse
 import logging
+import os
+import platform
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+from typing import Dict, List
+
+
+INSTALLABLE_EXTENSIONS = {".otf", ".ttf", ".ttc", ".otc"}
+
 
 class FontInstaller:
-    """Install fonts from downloaded ZIP files."""
-    
-    def __init__(self, fonts_dir: str = "./downloads/fonts"):
+    """Install extracted Fontshare fonts for the current platform."""
+
+    def __init__(
+        self,
+        fonts_dir: str = "./downloads/fonts",
+        scope: str = "user",
+        verbose: bool = False,
+    ):
         self.fonts_dir = Path(fonts_dir)
+        self.scope = scope
+        self.verbose = verbose
         self.os_type = platform.system().lower()
-        self.temp_dir = Path(tempfile.mkdtemp(prefix="fontshare_install_"))
-        
-        # Setup logging
+
         logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s'
+            level=logging.DEBUG if verbose else logging.INFO,
+            format="%(asctime)s - %(levelname)s - %(message)s",
+            force=True,
         )
         self.logger = logging.getLogger(__name__)
-        
-        # Get system font directory
-        self.system_font_dir = self._get_system_font_directory()
-        
-    def _get_system_font_directory(self) -> Path:
-        """Get the system font directory based on OS."""
+        self.target_dir = self._get_target_directory()
+
+    def _get_target_directory(self) -> Path:
+        """Return the install directory for the selected OS and scope."""
         if self.os_type == "windows":
-            return Path(os.environ.get("WINDIR", "C:\\Windows")) / "Fonts"
-        elif self.os_type == "darwin":  # macOS
+            if self.scope == "system":
+                return Path(os.environ.get("WINDIR", "C:\\Windows")) / "Fonts"
+            return Path.home() / "AppData" / "Local" / "Microsoft" / "Windows" / "Fonts"
+
+        if self.os_type == "darwin":
+            if self.scope == "system":
+                return Path("/Library/Fonts")
             return Path.home() / "Library" / "Fonts"
-        else:  # Linux
-            user_fonts = Path.home() / ".local" / "share" / "fonts"
-            user_fonts.mkdir(parents=True, exist_ok=True)
-            return user_fonts
-    
-    def extract_fonts_from_zip(self, zip_path: Path) -> List[Path]:
-        """Extract font files from a ZIP archive."""
-        font_files = []
-        font_extensions = {'.ttf', '.otf', '.woff', '.woff2', '.eot'}
-        
-        try:
-            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                for file_info in zip_ref.infolist():
-                    if any(file_info.filename.lower().endswith(ext) for ext in font_extensions):
-                        # Extract to temp directory
-                        extracted_path = zip_ref.extract(file_info, self.temp_dir)
-                        font_files.append(Path(extracted_path))
-                        
-        except Exception as e:
-            self.logger.error(f"Failed to extract {zip_path}: {e}")
-            
-        return font_files
-    
-    def install_font_windows(self, font_path: Path) -> bool:
-        """Install font on Windows using registry."""
-        try:
-            import winreg
-            
-            # Copy font to Windows Fonts directory
-            dest_path = self.system_font_dir / font_path.name
-            shutil.copy2(font_path, dest_path)
-            
-            # Register font in registry
-            font_name = font_path.stem
-            registry_key = winreg.OpenKey(
-                winreg.HKEY_LOCAL_MACHINE,
-                r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts",
-                0, winreg.KEY_SET_VALUE
-            )
-            
-            winreg.SetValueEx(
-                registry_key, 
-                f"{font_name} (TrueType)", 
-                0, 
-                winreg.REG_SZ, 
-                font_path.name
-            )
-            winreg.CloseKey(registry_key)
-            
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Failed to install {font_path.name} on Windows: {e}")
+
+        if self.scope == "system":
+            return Path("/usr/local/share/fonts")
+
+        xdg_data_home = os.environ.get("XDG_DATA_HOME")
+        if xdg_data_home:
+            return Path(xdg_data_home) / "fonts"
+        return Path.home() / ".local" / "share" / "fonts"
+
+    def _ensure_target_directory(self):
+        """Create the target directory when possible before installation."""
+        self.target_dir.mkdir(parents=True, exist_ok=True)
+
+    def _windows_is_admin(self) -> bool:
+        """Return True when the process is elevated on Windows."""
+        if self.os_type != "windows":
             return False
-    
-    def install_font_simple_copy(self, font_path: Path) -> bool:
-        """Simple font installation by copying to font directory."""
+
         try:
-            dest_path = self.system_font_dir / font_path.name
-            shutil.copy2(font_path, dest_path)
-            return True
-        except Exception as e:
-            self.logger.error(f"Failed to copy {font_path.name}: {e}")
+            import ctypes
+
+            return bool(ctypes.windll.shell32.IsUserAnAdmin())
+        except Exception:
             return False
-    
-    def install_font(self, font_path: Path) -> bool:
-        """Install a single font file."""
-        if self.os_type == "windows":
-            # Try admin installation first, fallback to simple copy
-            try:
-                return self.install_font_windows(font_path)
-            except:
-                self.logger.warning(f"Registry installation failed for {font_path.name}, trying simple copy...")
-                return self.install_font_simple_copy(font_path)
-        else:
-            return self.install_font_simple_copy(font_path)
-    
-    def find_font_zips(self) -> List[Path]:
-        """Find all font ZIP files in the downloads directory."""
-        zip_files = []
-        if self.fonts_dir.exists():
-            zip_files = list(self.fonts_dir.rglob("*.zip"))
-        return zip_files
-    
-    def install_all_fonts(self) -> Dict[str, int]:
-        """Install all fonts from ZIP files."""
-        zip_files = self.find_font_zips()
-        
-        if not zip_files:
-            self.logger.warning(f"No font ZIP files found in {self.fonts_dir}")
-            return {"processed": 0, "installed": 0, "failed": 0}
-        
-        self.logger.info(f"Found {len(zip_files)} font ZIP files")
-        self.logger.info(f"Installing fonts to: {self.system_font_dir}")
-        
-        stats = {"processed": 0, "installed": 0, "failed": 0}
-        
-        for zip_path in zip_files:
-            self.logger.info(f"Processing: {zip_path.name}")
-            stats["processed"] += 1
-            
-            # Extract fonts from ZIP
-            font_files = self.extract_fonts_from_zip(zip_path)
-            
-            if not font_files:
-                self.logger.warning(f"No font files found in {zip_path.name}")
-                stats["failed"] += 1
+
+    def _windows_value_name(self, font_path: Path) -> str:
+        """Build a registry label for a Windows font file."""
+        kind = "OpenType" if font_path.suffix.lower() in {".otf", ".otc"} else "TrueType"
+        return f"{font_path.stem} ({kind})"
+
+    def _register_windows_font(self, font_path: Path):
+        """Register an installed Windows font for the selected scope."""
+        import ctypes
+        import winreg
+
+        key_root = winreg.HKEY_LOCAL_MACHINE if self.scope == "system" else winreg.HKEY_CURRENT_USER
+        key_path = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts"
+        value_name = self._windows_value_name(font_path)
+        value_data = font_path.name if self.scope == "system" else str(font_path)
+
+        with winreg.OpenKey(key_root, key_path, 0, winreg.KEY_SET_VALUE) as registry_key:
+            winreg.SetValueEx(registry_key, value_name, 0, winreg.REG_SZ, value_data)
+
+        gdi32 = ctypes.windll.gdi32
+        added = gdi32.AddFontResourceExW(str(font_path), 0, 0)
+        if added == 0:
+            self.logger.debug("Windows font resource refresh returned 0 for %s", font_path.name)
+
+    def _refresh_windows_fonts(self):
+        """Broadcast the Windows font change notification."""
+        try:
+            import ctypes
+
+            hwnd_broadcast = 0xFFFF
+            wm_fontchange = 0x001D
+            smto_abortifhung = 0x0002
+            ctypes.windll.user32.SendMessageTimeoutW(
+                hwnd_broadcast,
+                wm_fontchange,
+                0,
+                0,
+                smto_abortifhung,
+                1000,
+                None,
+            )
+        except Exception as exc:
+            self.logger.debug("Windows font notification failed: %s", exc)
+
+    def _refresh_linux_font_cache(self):
+        """Refresh the fontconfig cache on Linux when available."""
+        fc_cache = shutil.which("fc-cache")
+        if not fc_cache:
+            self.logger.warning("fc-cache not found; new fonts may not appear until the cache refreshes.")
+            return
+
+        try:
+            subprocess.run(
+                [fc_cache, "-f", str(self.target_dir)],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+        except subprocess.CalledProcessError as exc:
+            detail = exc.stderr.strip() or exc.stdout.strip() or str(exc)
+            self.logger.warning("fc-cache failed: %s", detail)
+
+    def find_font_files(self) -> List[Path]:
+        """Return installable font files from the extracted downloads directory."""
+        if not self.fonts_dir.exists():
+            return []
+
+        font_files: List[Path] = []
+        for path in self.fonts_dir.rglob("*"):
+            if not path.is_file() or path.suffix.lower() not in INSTALLABLE_EXTENSIONS:
                 continue
-            
-            # Install each font file
-            zip_success = True
-            for font_file in font_files:
-                if self.install_font(font_file):
-                    self.logger.info(f"✅ Installed: {font_file.name}")
-                else:
-                    self.logger.error(f"❌ Failed: {font_file.name}")
-                    zip_success = False
-            
-            if zip_success:
-                stats["installed"] += 1
-            else:
-                stats["failed"] += 1
-        
-        return stats
-    
-    def create_batch_installer(self):
-        """Create a Windows batch file for easy installation."""
-        batch_content = '''@echo off
-echo Installing Fontshare Fonts...
-echo.
-echo This will install all downloaded fonts to your system.
-echo You may need administrator privileges.
-echo.
-pause
+            if any(part.lower() == "web" for part in path.parts):
+                continue
+            font_files.append(path)
 
-python install_fonts.py
+        return sorted(font_files)
 
-echo.
-echo Installation complete!
-echo.
-pause
-'''
-        
-        batch_path = Path("install_fonts.bat")
-        with open(batch_path, 'w') as f:
-            f.write(batch_content)
-        
-        self.logger.info(f"Created batch installer: {batch_path}")
-    
-    def cleanup(self):
-        """Clean up temporary files."""
+    def install_font(self, source_path: Path) -> str:
+        """Install a single font file and return installed, skipped, or failed."""
+        destination = self.target_dir / source_path.name
         try:
-            shutil.rmtree(self.temp_dir)
-        except:
-            pass
-    
+            self._ensure_target_directory()
+            if destination.exists() and destination.stat().st_size == source_path.stat().st_size:
+                self.logger.info("Skipping %s (already installed)", source_path.name)
+                return "skipped"
+
+            shutil.copy2(source_path, destination)
+            if self.os_type == "windows":
+                self._register_windows_font(destination)
+
+            self.logger.info("Installed %s", source_path.name)
+            return "installed"
+        except Exception as exc:
+            self.logger.error("Failed to install %s: %s", source_path.name, exc)
+            return "failed"
+
+    def install_all_fonts(self) -> Dict[str, int]:
+        """Install all extracted fonts for the selected platform and scope."""
+        if self.os_type == "windows" and self.scope == "system" and not self._windows_is_admin():
+            raise PermissionError("system-wide Windows installs require administrator privileges")
+
+        font_files = self.find_font_files()
+        stats = {"processed": len(font_files), "installed": 0, "skipped": 0, "failed": 0}
+
+        if not font_files:
+            self.logger.warning("No extracted font files found in %s", self.fonts_dir)
+            return stats
+
+        self.logger.info("Found %s installable font files", len(font_files))
+        self.logger.info("Installing fonts to %s", self.target_dir)
+
+        for font_path in font_files:
+            result = self.install_font(font_path)
+            stats[result] += 1
+
+        if self.os_type == "windows":
+            self._refresh_windows_fonts()
+        elif self.os_type == "linux":
+            self._refresh_linux_font_cache()
+
+        return stats
+
     def run(self):
-        """Main execution method."""
-        print("🎨 Fontshare Font Installer")
+        """Run the installer CLI flow."""
+        print("Fontshare Font Installer")
         print("=" * 40)
         print(f"Operating System: {platform.system()}")
-        print(f"Font Directory: {self.system_font_dir}")
+        print(f"Install Scope: {self.scope}")
         print(f"Source Directory: {self.fonts_dir}")
+        print(f"Target Directory: {self.target_dir}")
         print()
-        
-        # Check if running as admin on Windows
-        if self.os_type == "windows":
-            try:
-                import ctypes
-                is_admin = ctypes.windll.shell32.IsUserAnAdmin()
-                if not is_admin:
-                    print("⚠️  Note: Running without administrator privileges.")
-                    print("   Some fonts may not install properly.")
-                    print("   Consider running as administrator for best results.")
-                    print()
-            except:
-                pass
-        
+
+        if self.os_type == "windows" and self.scope == "system" and not self._windows_is_admin():
+            print("System-wide Windows installs require an elevated shell.")
+            print("Use `--scope user` to install without administrator privileges.")
+            return 1
+
         try:
             stats = self.install_all_fonts()
-            
-            print("\n" + "=" * 50)
-            print("🎉 Font Installation Complete!")
-            print("=" * 50)
-            print(f"📦 ZIP files processed: {stats['processed']}")
-            print(f"✅ Successfully installed: {stats['installed']}")
-            print(f"❌ Failed installations: {stats['failed']}")
-            print(f"📁 Fonts installed to: {self.system_font_dir}")
-            
-            if self.os_type == "windows":
-                print("\n💡 Tip: You may need to restart applications to see new fonts.")
-            
-        except KeyboardInterrupt:
-            print("\n⚠️  Installation interrupted by user")
-        except Exception as e:
-            print(f"\n❌ Error: {e}")
+        except PermissionError as exc:
+            print(f"Error: {exc}")
+            return 1
+        except Exception as exc:
+            print(f"Error: {exc}")
             self.logger.exception("Unexpected error occurred")
-        finally:
-            self.cleanup()
+            return 1
+
+        print()
+        print("=" * 50)
+        print("Font Installation Complete")
+        print("=" * 50)
+        print(f"Font files processed: {stats['processed']}")
+        print(f"Installed: {stats['installed']}")
+        print(f"Skipped: {stats['skipped']}")
+        print(f"Failed: {stats['failed']}")
+        print(f"Fonts installed to: {self.target_dir}")
+
+        if self.os_type == "linux":
+            print("Fontconfig cache refresh was attempted automatically.")
+        elif self.os_type in {"windows", "darwin"}:
+            print("Restart any open design apps if the new fonts do not appear immediately.")
+
+        return 0
+
+
+def _configure_console_encoding():
+    """Prefer UTF-8 console output when available."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            try:
+                reconfigure(encoding="utf-8", errors="replace")
+            except ValueError:
+                pass
 
 
 def main():
     """Command line interface."""
-    import argparse
-    
-    parser = argparse.ArgumentParser(description="Install Fontshare fonts")
+    _configure_console_encoding()
+
+    parser = argparse.ArgumentParser(description="Install extracted Fontshare fonts")
     parser.add_argument(
-        "--fonts-dir", 
+        "--fonts-dir",
         default="./downloads/fonts",
-        help="Directory containing font ZIP files"
+        help="Directory containing extracted font families",
     )
     parser.add_argument(
-        "--create-batch", 
-        action="store_true",
-        help="Create a batch installer file (Windows)"
+        "--scope",
+        choices=("user", "system"),
+        default="user",
+        help="Install fonts for the current user or system-wide",
     )
-    
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Enable verbose logging",
+    )
+
     args = parser.parse_args()
-    
-    installer = FontInstaller(args.fonts_dir)
-    
-    if args.create_batch:
-        installer.create_batch_installer()
-        print("✅ Batch installer created: install_fonts.bat")
-        return
-    
-    installer.run()
+    installer = FontInstaller(args.fonts_dir, scope=args.scope, verbose=args.verbose)
+    raise SystemExit(installer.run())
 
 
 if __name__ == "__main__":
