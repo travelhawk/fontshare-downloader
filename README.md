@@ -115,20 +115,13 @@ downloads/
 
 The installer ignores web-only assets and installs desktop font files such as `.otf`, `.ttf`, `.ttc`, and `.otc`.
 
-## Legacy Scripts
-
-Everything under `scripts/legacy/` is retained for reference, troubleshooting, or older Windows-only flows. Those scripts are not the preferred interface and may reflect earlier ZIP-based behavior that predates the current extract-on-download workflow.
-
-If you need them anyway:
-
-```bash
-python scripts/legacy/demo.py
-python scripts/legacy/discover_fonts.py
-python scripts/legacy/debug_downloader.py
-```
-
 ## Notes
 
 - Font downloads and use remain subject to Fontshare's licensing terms.
 - Use conservative rate limits and concurrency so the downloader remains respectful to Fontshare's service.
 - If system-wide installation fails on Windows, run the shell with administrator privileges or use `--scope user`.
+
+## Contributors
+
+- [exadizon](https://github.com/exadizon)
+- [travelhawk](https://github.com/travelhawk)
