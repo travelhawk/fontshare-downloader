@@ -1,7 +1,8 @@
 __pycache__
+.playwright-cli
 venv
 downloads
-demo_downloads
+video/
 debug.log
 discovered_fonts.json
 *.pyc
