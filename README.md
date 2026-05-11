@@ -9,8 +9,6 @@ The repository now has one primary workflow and a small set of archived experime
 - `fontshare_downloader.py` is the main downloader.
 - `install_fonts.py` is the main cross-platform installer for extracted desktop fonts.
 - `run_downloader.bat` is a Windows convenience wrapper for the main downloader.
-- `install_fonts_quick.bat` and `install_system_fonts.bat` are Windows-only legacy helpers kept for fallback use.
-- `scripts/legacy/` contains older prototypes, debug scripts, and superseded one-off utilities.
 - `docs/prd.md` is the original planning document, kept as project history rather than current behavior.
 
 ## Repository Layout
@@ -23,8 +21,6 @@ The repository now has one primary workflow and a small set of archived experime
 ├── install_fonts.py             # Supported installer CLI
 ├── font_list.py                 # Fallback font slug lists
 ├── run_downloader.bat           # Windows wrapper for the main downloader
-├── install_fonts_quick.bat      # Legacy Windows fallback wrapper
-├── install_system_fonts.bat     # Legacy Windows admin wrapper
 ├── docs/
 │   └── prd.md
 ```
@@ -48,17 +44,27 @@ Current Python dependencies:
 
 ### Download the catalog
 
-Use this to download the fonts automatically:
+Use this to download and install the fonts automatically:
+
+```bash
+python fontshare_downloader.py --install
+```
+
+Use this to only download the fonts:
 
 ```bash
 python fontshare_downloader.py
 ```
 
-Use this to download and install the fonts automatically:
+What the main downloader does:
 
-```
-python fontshare_downloader.py --install
-```
+- fetches the live Fontshare catalog from `https://api.fontshare.com/v2/fonts`
+- falls back to `font_list.py` if live discovery fails
+- downloads each family archive
+- extracts each family immediately into `downloads/fonts/<slug>/`
+- records logs and metadata under `downloads/logs/` and `downloads/metadata/`
+
+### Advanced usage
 
 Useful options:
 
@@ -70,23 +76,15 @@ python fontshare_downloader.py --install --install-scope system
 python fontshare_downloader.py --verbose
 ```
 
-What the main downloader does:
+---
 
-- fetches the live Fontshare catalog from `https://api.fontshare.com/v2/fonts`
-- falls back to `font_list.py` if live discovery fails
-- downloads each family archive
-- extracts each family immediately into `downloads/fonts/<slug>/`
-- records logs and metadata under `downloads/logs/` and `downloads/metadata/`
-
-### Install extracted fonts
-
-Install for the current user:
+Install-only for the current user:
 
 ```bash
 python install_fonts.py --scope user
 ```
 
-Install system-wide:
+Install-only system-wide:
 
 ```bash
 python install_fonts.py --scope system
@@ -97,6 +95,7 @@ You can also point the installer at a custom extraction directory:
 ```bash
 python install_fonts.py --fonts-dir ./downloads/fonts --scope user
 ```
+
 
 ## Default Output Layout
 
